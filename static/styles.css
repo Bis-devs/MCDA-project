@@ -1,0 +1,72 @@
+/* Reset osnovnega stila */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Osnovno telo strani */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header z navigacijo */
+header {
+    background: #2c3e50;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Navigacija */
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Gumbi v meniju */
+nav a {
+    display: inline-block;
+    background: #34495e;
+    color: #ecf0f1;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Hover efekt */
+nav a:hover {
+    background: #1abc9c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Aktivni link (če boš imel class="active") */
+nav a.active {
+    background: #16a085;
+    font-weight: bold;
+}
+
+/* Glavni del strani */
+main {
+    flex: 1;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* Footer */
+footer {
+    background: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    border-top: 2px solid #16a085;
+}
