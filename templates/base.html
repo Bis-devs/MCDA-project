@@ -1,26 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}MCDA Project{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <title>MCDA Project</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="/" class="active">Home</a>
-            <a href="/api/companies">Companies</a>
-            <a href="/add">Add Company</a>
-            <a href="/about">About</a>
-        </nav>
-    </header>
+    <nav>
+        <div class="menu">
+          <a href="{{ url_for('ahp') }}">AHP</a>
+          <a href="{{ url_for('topsis') }}">TOPSIS</a>
+          <a href="{{ url_for('promethee') }}">PROMETHEE</a>
+          <a href="{{ url_for('wsm') }}">WSM</a>
+        </div>
+      </nav>
+      
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer>
-        <p>© 2025 MCDA Project</p>
-    </footer>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>

@@ -24,10 +24,29 @@ header {
 
 /* Navigacija */
 nav {
+    background: #2c3e50;
+    padding: 1rem;
+  }
+  
+  .menu {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
+    justify-content: center; /* center horizontally */
+    gap: 2rem;
+  }
+  
+  .menu a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  .menu a:hover {
+    background: #1abc9c;
+    color: #fff;
+  }
+  
 
 /* Gumbi v meniju */
 nav a {
@@ -70,3 +89,28 @@ footer {
     padding: 1rem;
     border-top: 2px solid #16a085;
 }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1rem;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  th {
+    background: #34495e;
+    color: white;
+  }
+  
+  tr:hover {
+    background: #f1f1f1;
+  }
+  
