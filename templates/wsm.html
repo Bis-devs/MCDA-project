@@ -5,37 +5,65 @@
     <title>WSM - Weighted Sum Model</title>
     <!-- Bootswatch Lux theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
 
- <!-- Navbar -->
- <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-    <div class="container-fluid" >
-      <a class="navbar-brand fw-bold" href="/">MCDA</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="/methods/wsm">WSM</a></li>
-          <li class="nav-item"><a class="nav-link" href="/methods/topsis">TOPSIS</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
 
 </head>
 <body class="container">
 
+
+        <!-- Home button -->
+        <div class="mt-3">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-home"></i> Back to MCDA Home
+            </a>
+        </div>
+    
+
+        <!-- Some vertical space -->
+        <div style="height: 30px;"></div>
+    
     <!-- Page header -->
     <div class="text-center my-5">
         <h2><strong>WSM – Weighted Sum Model</strong></h2>
-        <p class="text-muted">Weighted Sum of Weights Method</p>
+        <p class="text-muted">1. Enter criteria weights</p>
+        <p class="text-muted">2. Select alternatives by checking their boxes</p>
     </div>
 
     <!-- Some vertical space -->
     <div style="height: 30px;"></div>
+
+    <form method="POST" action="{{ url_for('mcda_bp.wsm') }}">
+        <!-- Weights Table -->
+        <div class="mcda-table mb-4">
+            <h4 class="text-center mb-3">Criteria Weights</h4>
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        {% for c in criteria_names %}
+                            <th>{{ c }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for i in range(criteria_names|length) %}
+                        <td>
+                            <input type="number" name="weights" class="form-control"
+       value="{{ weight }}" step="any" min="0" max="1">
+
+                        </td>
+                        
+                        
+                        
+                        
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+            <p class="text-muted text-center">⚖️ The sum of all weights must equal 1.00</p>
+        </div>
+    
 
     <form method="POST" action="{{ url_for('mcda_bp.wsm') }}">
         <div class="mcda-table">
@@ -89,6 +117,7 @@
 
     
     <!-- Normalized & Weighted Scores -->
+    {% if results %}
     <div class="mcda-table">
         <h4 class="text-center mb-3">Normalized, Weighted Scores and Final Result</h4>
         <table class="table table-bordered table-hover">
@@ -121,16 +150,19 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 
     <!-- Space before decision -->
     <div style="height: 50px;"></div>
 
-    <!-- Final Decision -->
+    {% if results %}
+    {% set best = results | max(attribute='score') %}
     <div class="text-center my-4 p-3 border rounded bg-light">
-        {% set best = results | max(attribute='score') %}
         <h4>🏆 Final Decision (WSM): <strong>{{ best.name }}</strong></h4>
         <p>Highest score: <strong>{{ best.score }}</strong></p>
     </div>
+{% endif %}
+
 
 </body>
 </html>
