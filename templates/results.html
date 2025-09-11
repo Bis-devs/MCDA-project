@@ -1,23 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>MCDA Results Comparison</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
-</head>
-<body class="container">
+{% extends "base.html" %}
+{% block content %}
 
-  <!-- Navbar bo iz base.html če extendamo -->
-  <div class="text-center my-4">
-    <h2><strong>📊 Comparison of MCDA Methods</strong></h2>
-    <p class="text-muted">Evaluation of selected companies using different decision-making methods</p>
-  </div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  {% if not selected_companies %}
+<div class="mt-3">
+  <a href="/" class="btn btn-outline-primary">
+    <i class="fas fa-home"></i> Back to MCDA Home
+  </a>
+</div>
+
+<div class="text-center my-4">
+  <h2><strong>📊 Comparison of MCDA Methods</strong></h2>
+  <p class="text-muted">Evaluation of selected companies using different decision-making methods</p>
+</div>
+
+{% if not selected_companies %}
   <div class="alert alert-warning text-center">
     ⚠️ No companies selected. Please go to <a href="{{ url_for('mcda_bp.select_companies') }}">Selection</a>.
   </div>
-  {% else %}
+{% else %}
 
   <!-- WSM -->
   <div class="mb-5">
@@ -65,6 +67,57 @@
     {% endif %}
   </div>
 
-  {% endif %}
-</body>
-</html>
+  <!-- PROMETHEE I -->
+  <div class="mb-5">
+    <h4>🔀 PROMETHEE I</h4>
+    {% if results_data.PROMETHEE %}
+    <table class="table table-bordered table-hover text-center">
+      <thead class="table-dark">
+        <tr><th>Rank</th><th>Company</th><th>Net Flow (Φ⁺ − Φ⁻)</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results_data.PROMETHEE %}
+        <tr {% if loop.index == 1 %}class="table-success"{% endif %}>
+          <td>{{ loop.index }}</td>
+          <td>{{ r.name }}</td>
+          <td><strong>{{ r.net_flow }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No PROMETHEE I results available.</p>
+    {% endif %}
+  </div>
+
+  <!-- VIKOR -->
+  <div class="mb-5">
+    <h4>📉 VIKOR</h4>
+    {% if results_data.VIKOR %}
+    <table class="table table-bordered table-hover text-center">
+      <thead class="table-dark">
+        <tr><th>Rank</th><th>Company</th><th>Q (VIKOR Index)</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results_data.VIKOR %}
+        <tr {% if loop.index == 1 %}class="table-success"{% endif %}>
+          <td>{{ loop.index }}</td>
+          <td>{{ r.name }}</td>
+          <td><strong>{{ r.Q }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No VIKOR results available.</p>
+    {% endif %}
+  </div>
+
+  <a href="{{ url_for('mcda_bp.clear_selection') }}" class="btn btn-danger mt-3">
+    <i class="fas fa-trash"></i> Clear Selection
+  </a>
+  
+  
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}PROMETHEE I – MCDA{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Back to MCDA Home -->
+  <div class="mt-3">
+    <a href="/" class="btn btn-outline-primary">
+      <i class="fas fa-home"></i> Back to MCDA Home
+    </a>
+  </div>
+
+<div class="text-center my-4">
+  <h2><strong>PROMETHEE I – Preference Ranking</strong></h2>
+  <p class="text-muted">Pairwise comparison with preference functions (Φ⁺, Φ⁻, net flow)</p>
+</div>
+
+
+
+{% if not companies %}
+  <div class="alert alert-warning text-center">
+    ⚠️ No companies selected yet. Please go to
+    <a href="{{ url_for('mcda_bp.select_companies') }}">Selection</a>.
+  </div>
+{% else %}
+
+  <!-- Selected Companies (input data) -->
+  <div class="table-responsive mb-5">
+    <h4 class="text-center mb-3">🏢 Selected Companies</h4>
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Company</th>
+          {% for crit in criteria_names %}
+            <th>{{ crit }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for comp in companies %}
+          <tr>
+            <td>{{ comp.name }}</td>
+            {% for val in comp.criteria %}
+              <td>{{ val }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if results %}
+    <!-- PROMETHEE I Results -->
+    <div class="table-responsive">
+      <h4 class="text-center mb-3">📊 PROMETHEE I Results</h4>
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Rank</th>
+            <th>Company</th>
+            <th>Φ⁺ (Positive Flow)</th>
+            <th>Φ⁻ (Negative Flow)</th>
+            <th>Net Flow (Φ⁺ − Φ⁻)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in results %}
+            <tr {% if loop.index == 1 %}class="table-success"{% elif loop.index == results|length %}class="table-danger"{% endif %}>
+              <td>{{ loop.index }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ '%.3f'|format(row.phi_plus) }}</td>
+              <td>{{ '%.3f'|format(row.phi_minus) }}</td>
+              <td><strong>{{ '%.3f'|format(row.net_flow) }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interpretation -->
+    <div class="alert alert-info mt-4">
+      <strong>Best choice:</strong> {{ interpretation.best }}<br>
+      <strong>Worst choice:</strong> {{ interpretation.worst }}<br>
+      <em>{{ interpretation.note }}</em>
+    </div>
+  {% endif %}
+
+
+{% endif %}
+{% endblock %}

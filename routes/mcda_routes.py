@@ -4,9 +4,12 @@ from config import MONGO_URI, DB_NAME
 from utils.helpers import parse_int, safe_float, calc_roa, build_decision_matrix
 import numpy as np
 from pymcdm.weights.subjective import AHP
-from pymcdm.methods import TOPSIS
 from decimal import Decimal, ROUND_HALF_UP, getcontext
-from pymcdm.methods import WSM
+from pymcdm.methods import WSM , VIKOR ,TOPSIS
+from pymcdm.methods.partial import PROMETHEE_I
+import math
+
+
 
 
 client = MongoClient(MONGO_URI)
@@ -37,8 +40,8 @@ def select_companies():
         selected_names = request.form.getlist("selected_companies")
         weights_input = request.form.getlist("weights")
 
-        if not selected_names:
-            flash("Please select at least one company.", "warning")
+        if not selected_names or len(selected_names) < 3:
+            flash("Please select at least three companies.", "warning")
         elif not weights_input:
             flash("Please enter weights.", "warning")
         else:
@@ -238,7 +241,199 @@ def topsis():
         zip=zip
     )
 
-#Results
+
+@mcda_bp.route("/promethee1", methods=["GET"])
+def promethee1():
+
+    getcontext().prec = 12
+
+    companies = list(db.companies.find({}))
+    criteria_names = [
+        "Revenue", "Revenue Growth", "Profit",
+        "Profit Growth", "Assets", "Employees", "ROA"
+    ]
+
+    # Izbor & uteži iz session (enako kot pri WSM/TOPSIS)
+    selected_names = session.get("selected_companies") or session.get("selected_names", [])
+    weights = session.get("weights")
+
+    # Default 1/n, če uteži manjkajo
+    if not weights:
+        n = len(criteria_names)
+        default_weight = (Decimal("1") / Decimal(str(n))).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
+        weights = [float(default_weight)] * n
+
+    # Če še ni selekcije -> pokažemo prazno stran z opozorilom
+    if not selected_names:
+        return render_template(
+            "promethee1.html",
+            companies=[],
+            results=[],
+            criteria_names=criteria_names,
+            interpretation={}
+        )
+
+    # Filtriraj izbrane dokumente
+    selected_docs = [c for c in companies if c.get("name") in selected_names]
+    if not selected_docs:
+        return render_template(
+            "promethee1.html",
+            companies=[],
+            results=[],
+            criteria_names=criteria_names,
+            interpretation={}
+        )
+
+    # Pripravi companies_display (ime + 7 kriterijev) za prikaz tabele
+    companies_display = []
+    for comp in selected_docs:
+        row, _ = build_decision_matrix([comp])  # (1,7)
+        companies_display.append({
+            "name": comp["name"],
+            "criteria": row[0].tolist()
+        })
+
+    # Izračun PROMETHEE I
+    weights_float = np.array([float(w) for w in weights], dtype=float)
+    matrix, criteria_types = build_decision_matrix(selected_docs)
+
+    promethee = PROMETHEE_I(preference_function="usual")
+    diff_tables, pi_table, (phi_plus, phi_minus) = promethee._method(
+        matrix, weights_float, criteria_types
+    )
+
+    # results za Φ+, Φ-
+    results = []
+    for comp, p, m in zip(selected_docs, phi_plus, phi_minus):
+        results.append({
+            "name": comp["name"],
+            "phi_plus": round(float(p), 3),
+            "phi_minus": round(float(m), 3),
+            "net_flow": round(float(p - m), 3)
+        })
+    results.sort(key=lambda x: x["net_flow"], reverse=True)
+
+    # step-by-step razlaga
+    explained = promethee._method_explained(matrix, weights_float, criteria_types)
+
+
+
+
+
+    # Interpretacija
+    interpretation = {}
+    if results:
+        interpretation["best"] = results[0]["name"]
+        interpretation["worst"] = results[-1]["name"]
+        interpretation["note"] = (
+            "Φ⁺ (positive) kaže, koliko alternativa nadvlada druge; "
+            "Φ⁻ (negative) koliko je nadvladana; net flow = Φ⁺ − Φ⁻."
+        )
+
+    return render_template(
+        "promethee1.html",
+        companies=companies_display,   # za prikaz (ime + kriteriji)
+        results=results,               # Φ⁺, Φ⁻, net flow
+        criteria_names=criteria_names,
+        interpretation=interpretation,
+        zip=zip
+    )
+
+
+@mcda_bp.route("/vikor", methods=["GET"])
+def vikor():
+
+    getcontext().prec = 12
+    companies = list(db.companies.find({}))
+    criteria_names = [
+        "Revenue", "Revenue Growth", "Profit",
+        "Profit Growth", "Assets", "Employees", "ROA"
+    ]
+
+    selected_names = session.get("selected_companies") or session.get("selected_names", [])
+    weights = session.get("weights")
+
+    if not weights:
+        n = len(criteria_names)
+        default_weight = (Decimal("1") / Decimal(str(n))).quantize(
+            Decimal("0.00000001"), rounding=ROUND_HALF_UP
+        )
+        weights = [float(default_weight)] * n
+
+    if not selected_names:
+        return render_template("vikor.html",
+                               companies=[],
+                               results=[],
+                               criteria_names=criteria_names,
+                               interpretation={})
+
+    selected_docs = [c for c in companies if c.get("name") in selected_names]
+
+    companies_display = []
+    for comp in selected_docs:
+        row, _ = build_decision_matrix([comp])
+        companies_display.append({
+            "name": comp["name"],
+            "criteria": row[0].tolist()
+        })
+
+    weights_float = np.array([float(w) for w in weights], dtype=float)
+    matrix, criteria_types = build_decision_matrix(selected_docs)
+
+    # 🔹 Uporabi unpack s 6 vrednostmi
+    vikor = VIKOR()
+    nmatrix, fminus, fstar, S, R, Q = vikor._method(matrix, weights_float, criteria_types)
+
+    results = []
+    for comp, s, r, q in zip(selected_docs, S, R, Q):
+        results.append({
+            "name": comp["name"],
+            "S": round(float(s), 3),
+            "R": round(float(r), 3),
+            "Q": round(float(q), 3)
+        })
+    results.sort(key=lambda x: x["Q"])  # manjši Q je boljši
+
+    interpretation = {}
+    if results:
+        interpretation["best"] = results[0]["name"]
+        interpretation["worst"] = results[-1]["name"]
+        interpretation["note"] = (
+            "Lower Q indicates closer to compromise solution (best trade-off between S and R)."
+        )
+
+
+    plot_labels = []
+    plot_scores = []
+
+    for r in results:
+        if not math.isnan(r["Q"]):
+            plot_labels.append(r["name"])
+            plot_scores.append(round(r["Q"], 3))
+        else:
+            plot_labels.append(r["name"])
+            plot_scores.append(None)  # Chart.js bo prazen stolpec
+
+    plot_data = {
+        "labels": plot_labels,
+        "scores": plot_scores
+    }
+
+
+
+    return render_template("vikor.html",
+                           companies=companies_display,
+                           results=results,
+                           criteria_names=criteria_names,
+                           interpretation=interpretation,
+                           zip=zip,
+                           plot_data=plot_data)
+
+
+
+# Results
 @mcda_bp.route("/results")
 def results():
     criteria_names = [
@@ -255,41 +450,78 @@ def results():
 
     results_data = {}
 
-    # --- WSM ---
     if selected_companies and weights:
         try:
             weights_float = np.array([float(w) for w in weights], dtype=float)
             matrix, criteria_types = build_decision_matrix(selected_companies)
 
-            wsm_method = WSM()
-            nmatrix, wmatrix, prefs = wsm_method._method(matrix, weights_float, criteria_types)
-            wsm_results = [
-                {"name": comp["name"], "score": round(float(pref), 3)}
-                for comp, pref in zip(selected_companies, prefs)
-            ]
-            wsm_results.sort(key=lambda x: x["score"], reverse=True)
-            results_data["WSM"] = wsm_results
-        except Exception as e:
-            results_data["WSM"] = []
+            # --- WSM ---
+            try:
+                wsm_method = WSM()
+                _, _, prefs = wsm_method._method(matrix, weights_float, criteria_types)
+                wsm_results = [
+                    {"name": comp["name"], "score": round(float(pref), 3)}
+                    for comp, pref in zip(selected_companies, prefs)
+                ]
+                wsm_results.sort(key=lambda x: x["score"], reverse=True)
+                results_data["WSM"] = wsm_results
+            except Exception:
+                results_data["WSM"] = []
 
-    # --- TOPSIS ---
-    if selected_companies and weights:
-        try:
-            weights_float = np.array([float(w) for w in weights], dtype=float)
-            matrix, criteria_types = build_decision_matrix(selected_companies)
+            # --- TOPSIS ---
+            try:
+                topsis_method = TOPSIS()
+                _, _, _, _, _, _, prefs = topsis_method._method(
+                    matrix, weights_float, criteria_types
+                )
+                topsis_results = [
+                    {"name": comp["name"], "score": round(float(pref), 3)}
+                    for comp, pref in zip(selected_companies, prefs)
+                ]
+                topsis_results.sort(key=lambda x: x["score"], reverse=True)
+                results_data["TOPSIS"] = topsis_results
+            except Exception:
+                results_data["TOPSIS"] = []
 
-            topsis_method = TOPSIS()
-            nmatrix, wmatrix, nis, pis, Dm, Dp, prefs = topsis_method._method(
-                matrix, weights_float, criteria_types
-            )
-            topsis_results = [
-                {"name": comp["name"], "score": round(float(pref), 3)}
-                for comp, pref in zip(selected_companies, prefs)
-            ]
-            topsis_results.sort(key=lambda x: x["score"], reverse=True)
-            results_data["TOPSIS"] = topsis_results
-        except Exception as e:
-            results_data["TOPSIS"] = []
+            # --- PROMETHEE I ---
+            try:
+                promethee = PROMETHEE_I(preference_function="usual")
+                _, _, (phi_plus, phi_minus) = promethee._method(
+                    matrix, weights_float, criteria_types
+                )
+                promethee_results = [
+                    {
+                        "name": comp["name"],
+                        "net_flow": round(float(p - m), 3)
+                    }
+                    for comp, p, m in zip(selected_companies, phi_plus, phi_minus)
+                ]
+                promethee_results.sort(key=lambda x: x["net_flow"], reverse=True)
+                results_data["PROMETHEE"] = promethee_results
+            except Exception:
+                results_data["PROMETHEE"] = []
+
+            # --- VIKOR ---
+            try:
+                vikor = VIKOR()
+                _, _, _, S, R, Q = vikor._method(matrix, weights_float, criteria_types)
+                vikor_results = [
+                    {
+                        "name": comp["name"],
+                        "Q": round(float(q), 3),
+                        "S": round(float(s), 3),
+                        "R": round(float(r), 3),
+                    }
+                    for comp, s, r, q in zip(selected_companies, S, R, Q)
+                ]
+                vikor_results.sort(key=lambda x: x["Q"])  # manjši Q je boljši
+                results_data["VIKOR"] = vikor_results
+            except Exception:
+                results_data["VIKOR"] = []
+
+        except Exception:
+            # če pade že build_decision_matrix
+            results_data = {}
 
     return render_template(
         "results.html",
@@ -298,3 +530,9 @@ def results():
         selected_companies=selected_companies
     )
 
+@mcda_bp.route("/clear_selection")
+def clear_selection():
+    session.pop("selected_companies", None)
+    session.pop("selected_names", None)
+    session.pop("weights", None)
+    return redirect(url_for("mcda_bp.select_companies"))

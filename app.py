@@ -10,11 +10,14 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = "super-secret-key"
 
+
+
 # Register blueprints
 app.register_blueprint(company_bp)
 app.register_blueprint(criteria_bp, url_prefix="/criteria")
 app.register_blueprint(mcda_bp, url_prefix="/methods")
 app.register_blueprint(main_bp, url_prefix="/")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

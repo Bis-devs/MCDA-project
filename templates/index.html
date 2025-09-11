@@ -3,6 +3,65 @@
 {% block title %}Home - MCDA Project{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the MCDA Fortune 500 Dashboard 🚀</h1>
-    <p>Use the menu above to navigate between features.</p>
+
+
+<div class="text-center my-5">
+    <h1><strong>MCDA Decision Support System</strong></h1>
+    <p class="lead text-muted">
+      A web-based tool for evaluating and comparing companies using multiple decision-making methods.
+    </p>
+  </div>
+  <div class="row text-center">
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h4 class="card-title">1️⃣ Select Companies</h4>
+          <p class="card-text">
+            Choose companies from the database and assign weights to evaluation criteria 
+            such as revenue, profit, assets, growth of those, employees and ROA .
+          </p>
+          <a href="{{ url_for('mcda_bp.select_companies') }}" class="btn btn-primary">Go to Selection</a>
+        </div>
+      </div>
+    </div>
+  
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h4 class="card-title">2️⃣ Apply Methods</h4>
+          <p class="card-text">
+            Analyze companies with different MCDA methods: 
+            <strong>WSM</strong>, <strong>TOPSIS</strong>, <strong>PROMETHEE I</strong>, and <strong>VIKOR</strong>.  
+            Each method provides a ranking and interpretation.
+          </p>
+          <a href="{{ url_for('mcda_bp.wsm') }}" class="btn btn-primary">Try Methods</a>
+        </div>
+      </div>
+    </div>
+  
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h4 class="card-title">3️⃣ Compare Results</h4>
+          <p class="card-text">
+            Compare rankings from all  methods on a single page and 
+            identify the most stable and reliable decision where to invest your money.  
+          </p><br>
+          <a href="{{ url_for('mcda_bp.results') }}" class="btn btn-primary">View Results</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Namesto modrega alerta -->
+  <div class="text-center mt-5 text-muted">
+    This system supports multi-criteria decision analysis (MCDA).  
+    It helps managers and researchers evaluate alternatives from different perspectives 
+    and make better, data-driven choices.
+  </div>
+  
+  
+
+
+
 {% endblock %}
