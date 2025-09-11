@@ -1,32 +1,30 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h1>Analitični hierarhični proces (AHP)</h1>
+<h2>AHP Results</h2>
 
-<table>
+<table class="table table-striped">
   <thead>
     <tr>
       <th>Rank</th>
-      <th>Name</th>
-      <th>Revenues ($M)</th>
-      <th>Profits ($M)</th>
-      <th>Assets ($M)</th>
-      <th>Employees</th>
-      <th>Years on List</th>
+      <th>Company</th>
+      <th>Score</th>
     </tr>
   </thead>
   <tbody>
-    {% for company in companies %}
+    {% for row in ranking %}
     <tr>
-      <td>{{ company.rank }}</td>
-      <td>{{ company.name }}</td>
-      <td>{{ company.revenues_million }}</td>
-      <td>{{ company.profits_million }}</td>
-      <td>{{ company.assets_million }}</td>
-      <td>{{ company.employees }}</td>
-      <td>{{ company.years_on_list }}</td>
+      <td>{{ loop.index }}</td>
+      <td>{{ row.company }}</td>
+      <td>{{ row.score }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+<h3>Criteria Weights</h3>
+<ul>
+  {% for c, w in zip(criteria, weights) %}
+  <li>{{ c }}: {{ "%.3f"|format(w) }}</li>
+  {% endfor %}
+</ul>
 {% endblock %}

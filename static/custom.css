@@ -1,0 +1,44 @@
+/* Limit width of MCDA tables */
+.mcda-table {
+    max-width: 1000px;      /* smaller than fullscreen */
+    margin: 20px auto;      /* center it */
+    font-size: 13px;        /* smaller text */
+}
+
+/* Make table cells more compact */
+.mcda-table .table th,
+.mcda-table .table td {
+    padding: 6px 10px;      /* reduce padding */
+    font-size: 13px;        /* smaller letters */
+}
+
+/* Company column emphasized */
+.mcda-table .table td:first-child {
+    text-align: left !important;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Keep hover effect */
+.mcda-table .table-hover tbody tr:hover {
+    background-color: #ecf6ff !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Zebra striping */
+.mcda-table .table tbody tr:nth-child(even) {
+    background-color: #f9f9f9 !important;
+}
+
+/* Keep borders clean but thin */
+.mcda-table .table,
+.mcda-table .table th,
+.mcda-table .table td {
+    border: 1px solid #dee2e6;
+}
+
+/* WSM Score column highlight */
+.mcda-table .table td strong {
+    color: #27ae60;
+    font-weight: 700;
+}

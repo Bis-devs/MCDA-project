@@ -1,0 +1,25 @@
+<!-- templates/companies.html -->
+<h2>All Companies in Database</h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Revenue</th>
+      <th>Profit</th>
+      <th>Assets</th>
+      <th>Employees</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in companies %}
+    <tr>
+      <td>{{ c.Name }}</td>
+      <td>{{ c.Revenue }}</td>
+      <td>{{ c.Profit }}</td>
+      <td>{{ c.Assets }}</td>
+      <td>{{ c.Employees }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -1,23 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>MCDA Project</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <nav>
-        <div class="menu">
-          <a href="{{ url_for('ahp') }}">AHP</a>
-          <a href="{{ url_for('topsis') }}">TOPSIS</a>
-          <a href="{{ url_for('promethee') }}">PROMETHEE</a>
-          <a href="{{ url_for('wsm') }}">WSM</a>
-        </div>
-      </nav>
-      
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}MCDA Project{% endblock %}</title>
+    
+    <!-- Bootswatch Lux Theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
-</body>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  </head>
+  <body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/">MCDA</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="/methods/wsm">WSM</a></li>
+            <li class="nav-item"><a class="nav-link" href="/methods/topsis">TOPSIS</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page content -->
+    <main class="container mt-4">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-3 mt-5 bg-dark text-light">
+      <small>&copy; 2025 MCDA Project</small>
+    </footer>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

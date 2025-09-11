@@ -1,22 +1,13 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, render_template
 from pymongo import MongoClient
 from config import MONGO_URI, DB_NAME
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
-companies_collection = db["companies"]
 
-company_bp = Blueprint("company_bp", __name__)
+company_bp = Blueprint("company_bp", __name__, url_prefix="/companies")
 
-# ➕ Dodaj podjetje
-@company_bp.route("/", methods=["POST"])
-def add_company():
-    data = request.json
-    companies_collection.insert_one(data)
-    return jsonify({"message": "Company added successfully"}), 201
-
-# 📥 Pridobi podjetja
-@company_bp.route("/", methods=["GET"])
-def get_companies():
-    companies = list(companies_collection.find({}, {"_id": 0}))
-    return jsonify(companies), 200
+@company_bp.route("/test")
+def test_companies():
+    raw_companies = list(db.companies.find({}, {"_id": 0}))
+    return render_template("test_companies.html", companies=raw_companies)

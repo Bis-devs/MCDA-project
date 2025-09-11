@@ -90,14 +90,7 @@ footer {
     border-top: 2px solid #16a085;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 1rem;
-    background: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-  }
+
   
   th, td {
     padding: 0.75rem;
@@ -113,4 +106,101 @@ table {
   tr:hover {
     background: #f1f1f1;
   }
+  
+  form {
+    margin: 1rem 0;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  form input {
+    width: 80px;
+    padding: 0.3rem;
+  }
+  
+  form button {
+    padding: 0.4rem 1rem;
+    background: #1abc9c;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+  }
+  
+  form button:hover {
+    background: #16a085;
+  }
+  
+
+
+  h3 {
+      margin-top: 40px;
+      margin-bottom: 15px;
+      font-weight: 600;
+      color: #2c3e50;
+  }
+
+  /* Tables */
+  .table {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      font-size: 10px;
+      background-color: #fff;
+  }
+
+  .table th, 
+  .table td {
+      text-align: center;
+      vertical-align: middle;
+      padding: 8px 12px;
+  }
+
+  .table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #2c3e50;
+  }
+
+  /* Dark header override */
+  .table-dark th {
+      background-color: #34495e !important;
+      color: #fff !important;
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+  }
+
+  /* Zebra striping */
+  .table tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+  }
+
+  /* Hover row highlight */
+  .table-hover tbody tr:hover {
+      background-color: #ecf6ff;
+  }
+
+  /* Numbers aligned properly */
+  td {
+      font-variant-numeric: tabular-nums;
+  }
+
+  /* Emphasize score */
+  td strong {
+      color: #27ae60;
+      font-weight: 700;
+  }
+
+  /* Optional: highlight the top performer row */
+  .top-score {
+      background-color: #eafbea !important;
+  }
+
+  /* Optional: highlight the lowest performer row */
+  .low-score {
+      background-color: #fdecea !important;
+  }
+
   

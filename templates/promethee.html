@@ -1,0 +1,11 @@
+<h2>PROMETHEE Ranking</h2>
+
+<table>
+  <tr><th>Company</th><th>Net Flow</th></tr>
+  {% for name, flow in results.net_flows.items() %}
+    <tr>
+      <td>{{ name }}</td>
+      <td>{{ "%.3f"|format(flow) }}</td>
+    </tr>
+  {% endfor %}
+</table>
