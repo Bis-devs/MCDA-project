@@ -203,4 +203,7 @@ footer {
       background-color: #fdecea !important;
   }
 
-  
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* bolj gladko na mobitelu */
+  }

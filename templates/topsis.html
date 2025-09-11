@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="container">
+
+
 
   <!-- Back to MCDA Home -->
   <div class="mt-3">
@@ -19,192 +23,138 @@
   <div class="text-center my-4">
     <h2><strong>TOPSIS – Technique for Order of Preference by Similarity to Ideal Solution</strong></h2>
     <p class="text-muted">Evaluate companies based on their closeness to the ideal solution</p>
-    <p class="text-muted">1. Enter criteria weights </p>
-    <p class="text-muted">2. Select alternatives by checking their boxes</p>
   </div>
 
-  <!-- Flash messages (validation, etc.) -->
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      {% for category, message in msgs %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
-  <!-- ONE form wrapping weights + company selection + submit -->
-  <form method="POST">
-
-    <!-- Weights table (one row, 7 inputs) -->
-    <div class="table-responsive mb-4">
-      <table class="table table-bordered table-hover align-middle text-center">
-        <thead class="table-light">
-          <tr>
-            {% for crit in criteria_names %}
-            <th>{{ crit }}</th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {% for weight in weights %}
-            <td style="min-width:120px;">
-              <input type="number" name="weights" class="form-control"
-                     value="{{ '%.3f'|format(weight|float) }}"
-                     step="any" min="0" max="1">
-            </td>
-            {% endfor %}
-          </tr>
-        </tbody>
-      </table>
-      <small class="text-muted d-block">
-        Tip: weights should sum to 1 (±0.001 is accepted). Default is 1/7 each → 0.143.
-      </small>
+  <!-- Če ni izbranih podjetij -->
+  {% if not companies %}
+    <div class="alert alert-warning text-center">
+      ⚠️ No companies selected yet. Please go to
+      <a href="{{ url_for('mcda_bp.select_companies') }}">Selection</a>.
     </div>
+  {% else %}
 
-    <!-- Company selection table -->
-    <div class="table-responsive">
+    <!-- Tabela izbranih podjetij -->
+    <div class="table-responsive mb-5">
+      <h4 class="text-center mb-3">🏢 Selected Companies</h4>
       <table class="table table-bordered table-hover align-middle text-center">
-        <thead class="table-light">
+        <thead class="table-dark">
           <tr>
-            <th>Select</th>
             <th>Company</th>
             {% for crit in criteria_names %}
-            <th>{{ crit }}</th>
+              <th>{{ crit }}</th>
             {% endfor %}
           </tr>
         </thead>
         <tbody>
-          {% for company in companies %}
-          <tr>
-            <td>
-              <input type="checkbox" name="selected_companies" value="{{ company.name }}"
-                     {% if company.name in selected_names %}checked{% endif %}>
-            </td>
-            <td>{{ company.name }}</td>
-            {% for value in company.criteria %}
-            <td>{{ value }}</td>
-            {% endfor %}
-          </tr>
+          {% for comp in companies %}
+            <tr>
+              <td>{{ comp.name }}</td>
+              {% for val in comp.criteria %}
+                <td>{{ val }}</td>
+              {% endfor %}
+            </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
 
-    <!-- Calculate Button -->
-    <div class="text-center mb-4">
-      <button type="submit" class="btn btn-success btn-lg">
-        <i class="fas fa-calculator"></i> Calculate TOPSIS
-      </button>
-    </div>
+    <!-- Results Table -->
+    {% if results %}
+      <div class="table-responsive">
+        <h4 class="text-center mb-3">📊 TOPSIS Results</h4>
+        <table class="table table-bordered table-hover align-middle text-center">
+          <thead class="table-light">
+            <tr>
+              <th>Rank</th>
+              <th>Company</th>
+              {% for crit in criteria_names %}
+                <th>{{ crit }} (Norm, Weighted)</th>
+              {% endfor %}
+              <th>TOPSIS Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in results %}
+              <tr {% if loop.index == 1 %}class="table-success"{% elif loop.index == results|length %}class="table-danger"{% endif %}>
+                <td>{{ loop.index }}</td>
+                <td>{{ row.name }}</td>
+                {% for norm, weighted in row.pairs %}
+                  <td>{{ '%.3f'|format(norm) }}, {{ '%.3f'|format(weighted) }}</td>
+                {% endfor %}
+                <td><strong>{{ '%.3f'|format(row.score) }}</strong></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-  </form>
+      <!-- Interpretation -->
+      <div class="alert alert-info mt-4">
+        <strong>Best choice:</strong> {{ interpretation.best }}<br>
+        <strong>Worst choice:</strong> {{ interpretation.worst }}<br>
+        {% if interpretation.score_gap is not none %}
+          <strong>Score gap between top 2:</strong> {{ interpretation.score_gap }}
+        {% endif %}<br>
+        <em>{{ interpretation.note }}</em>
+      </div>
 
-  <!-- Interpretation -->
-  {% if interpretation %}
-  <div class="alert alert-info">
-    <strong>Best choice:</strong> {{ interpretation.best }}<br>
-    <strong>Worst choice:</strong> {{ interpretation.worst }}<br>
-    {% if interpretation.score_gap is not none %}
-    <strong>Score gap between top 2:</strong> {{ interpretation.score_gap }}
-    {% endif %}<br>
-    <em>{{ interpretation.note }}</em>
-  </div>
-  {% endif %}
+      {% if interpretation.percent_scores %}
+        <div class="mt-4">
+          <h5>Percent Closeness to Ideal</h5>
+          <ul>
+            {% for item in interpretation.percent_scores %}
+              <li>{{ item.name }} → {{ item.percent }}%</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
 
-  <!-- Results Table -->
-  {% if results %}
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle text-center">
-      <thead class="table-light">
-        <tr>
-          <th>Rank</th>
-          <th>Company</th>
-          {% for crit in criteria_names %}
-          <th>{{ crit }} (Norm, Weighted)</th>
-          {% endfor %}
-          <th>TOPSIS Score</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in results %}
-        <tr {% if loop.index == 1 %}class="table-success"{% elif loop.index == results|length %}class="table-danger"{% endif %}>
-          <td>{{ loop.index }}</td>
-          <td>{{ row.name }}</td>
-          {% for norm, weighted in row.pairs %}
-          <td>{{ '%.3f'|format(norm) }}, {{ '%.3f'|format(weighted) }}</td>
-          {% endfor %}
-          <td><strong>{{ '%.3f'|format(row.score) }}</strong></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
+      {% if interpretation.stability %}
+        <div class="alert alert-secondary mt-3">
+          <strong>Ranking Stability:</strong> {{ interpretation.stability }}
+        </div>
+      {% endif %}
 
-  {% if interpretation.percent_scores %}
-<div class="mt-4">
-    <h5>Percent Closeness to Ideal</h5>
-    <ul>
-        {% for item in interpretation.percent_scores %}
-        <li>{{ item.name }} → {{ item.percent }}%</li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
+      {% if plot_data %}
+        <div class="my-5">
+          <h5 class="text-center">TOPSIS Scores Visualization</h5>
+          <canvas id="topsisChart" height="120"></canvas>
+        </div>
 
-{% if interpretation.stability %}
-<div class="alert alert-secondary mt-3">
-    <strong>Ranking Stability:</strong> {{ interpretation.stability }}
-</div>
-{% endif %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+          const ctx = document.getElementById('topsisChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: {{ plot_data.labels|tojson }},
+              datasets: [{
+                label: 'TOPSIS Score (0–1)',
+                data: {{ plot_data.scores|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              scales: {
+                x: {
+                  min: 0,
+                  max: 1,
+                  title: { display: true, text: 'Closeness to Ideal (TOPSIS Score)' }
+                }
+              }
+            }
+          });
+        </script>
+      {% endif %}
+    {% endif %} {# konec if results #}
 
+  {% endif %} {# konec outer if companies #}
 
-{% if results and plot_data %}
-<div class="my-5">
-  <h5 class="text-center">TOPSIS Scores Visualization</h5>
-  <canvas id="topsisChart" height="120"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx = document.getElementById('topsisChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: {{ plot_data.labels|tojson }},
-      datasets: [{
-        label: 'TOPSIS Score (0–1)',
-        data: {{ plot_data.scores|tojson }},
-        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      scales: {
-        x: {
-          min: 0,
-          max: 1,
-          title: {
-            display: true,
-            text: 'Closeness to Ideal (TOPSIS Score)'
-          }
-        }
-      }
-    }
-  });
-</script>
-{% endif %}
-
-
-
-  <!-- Bootstrap JS (for dismissible alerts) -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
+{% endblock %}

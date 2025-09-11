@@ -1,3 +1,7 @@
+
+{% extends "base.html" %}
+{% block content %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,73 +9,34 @@
     <title>WSM - Weighted Sum Model</title>
     <!-- Bootswatch Lux theme -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css">
-    
-
-
 </head>
 <body class="container">
 
+    <!-- Home button -->
+    <div class="mt-3">
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-home"></i> Back to MCDA Home
+        </a>
+    </div>
 
-        <!-- Home button -->
-        <div class="mt-3">
-            <a href="/" class="btn btn-outline-primary">
-                <i class="fas fa-home"></i> Back to MCDA Home
-            </a>
-        </div>
-    
-
-        <!-- Some vertical space -->
-        <div style="height: 30px;"></div>
-    
     <!-- Page header -->
     <div class="text-center my-5">
         <h2><strong>WSM – Weighted Sum Model</strong></h2>
-        <p class="text-muted">1. Enter criteria weights</p>
-        <p class="text-muted">2. Select alternatives by checking their boxes</p>
+        <p class="text-muted">Ranking of the selected companies</p>
     </div>
 
-    <!-- Some vertical space -->
-    <div style="height: 30px;"></div>
-
-    <form method="POST" action="{{ url_for('mcda_bp.wsm') }}">
-        <!-- Weights Table -->
-        <div class="mcda-table mb-4">
-            <h4 class="text-center mb-3">Criteria Weights</h4>
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        {% for c in criteria_names %}
-                            <th>{{ c }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for i in range(criteria_names|length) %}
-                        <td>
-                            <input type="number" name="weights" class="form-control"
-       value="{{ weight }}" step="any" min="0" max="1">
-
-                        </td>
-                        
-                        
-                        
-                        
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-            <p class="text-muted text-center">⚖️ The sum of all weights must equal 1.00</p>
+    {% if not companies %}
+        <div class="alert alert-warning text-center">
+            🚫 No companies selected yet. Please go to 
+            <a href="{{ url_for('mcda_bp.select_companies') }}">Selection</a>.
         </div>
-    
-
-    <form method="POST" action="{{ url_for('mcda_bp.wsm') }}">
+    {% else %}
+        <!-- Selected Companies Table -->
         <div class="mcda-table">
-            <h4 class="text-center mb-3">Alternatives (Input Data)</h4>
+            <h4 class="text-center mb-3">🏢 Selected Companies</h4>
             <table class="table table-bordered table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th>Select</th>
                         <th>Company</th>
                         <th>Revenue (M)</th>
                         <th>Revenue Growth %</th>
@@ -85,10 +50,6 @@
                 <tbody>
                 {% for comp in companies %}
                     <tr>
-                        <td>
-                            <input type="checkbox" name="selected_companies" value="{{ comp.name }}"
-                                   {% if comp.name in selected_names %}checked{% endif %}>
-                        </td>
                         <td>{{ comp.name }}</td>
                         <td>{{ comp.revenues_million }}</td>
                         <td>{{ comp.revenue_percent_change }}</td>
@@ -104,65 +65,52 @@
                 </tbody>
             </table>
         </div>
-    
-        <div class="text-center my-3">
-            <button type="submit" class="btn btn-primary">Run WSM Calculation</button>
+
+        <!-- Normalized & Weighted Scores -->
+        {% if results %}
+        <div class="table-responsive">
+            <h4 class="text-center mb-3">📊 Normalized, Weighted Scores and Final Result</h4>
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th rowspan="2">Company</th>
+                        {% for c in criteria_names %}
+                            <th colspan="2">{{ c }}</th>
+                        {% endfor %}
+                        <th rowspan="2">WSM Score</th>
+                    </tr>
+                    <tr>
+                        {% for c in criteria_names %}
+                            <th>Norm</th>
+                            <th>Weighted</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for res in results %}
+                    <tr>
+                        <td>{{ res.name }}</td>
+                        {% for norm, weighted in res.pairs %}
+                            <td>{{ "%.3f"|format(norm) }}</td>
+                            <td>{{ "%.3f"|format(weighted) }}</td>
+                        {% endfor %}
+                        <td><strong>{{ res.score }}</strong></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </form>
-    
 
-    <!-- Space before second table -->
-    <div style="height: 50px;"></div>
-
-
-    
-    <!-- Normalized & Weighted Scores -->
-    {% if results %}
-    <div class="mcda-table">
-        <h4 class="text-center mb-3">Normalized, Weighted Scores and Final Result</h4>
-        <table class="table table-bordered table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th rowspan="2">Company</th>
-                    {% for c in criteria_names %}
-                        <th colspan="2">{{ c }}</th>
-                    {% endfor %}
-                    <th rowspan="2">WSM Score</th>
-                </tr>
-                <tr>
-                    {% for c in criteria_names %}
-                        <th>Norm</th>
-                        <th>Weighted</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-            {% for res in results %}
-                <tr>
-                    <td>{{ res.name }}</td>
-                    {% for norm, weighted in res.pairs %}
-                        <td>{{ "%.3f"|format(norm) }}</td>
-                        <td>{{ "%.3f"|format(weighted) }}</td>
-                    {% endfor %}
-                    <td><strong>{{ res.score }}</strong></td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        <!-- Final decision -->
+        {% set best = results | max(attribute='score') %}
+        <div class="text-center my-4 p-3 border rounded bg-light">
+            <h4>🏆 Final Decision (WSM): <strong>{{ best.name }}</strong></h4>
+            <p>Highest score: <strong>{{ best.score }}</strong></p>
+        </div>
+        {% endif %}
     {% endif %}
-
-    <!-- Space before decision -->
-    <div style="height: 50px;"></div>
-
-    {% if results %}
-    {% set best = results | max(attribute='score') %}
-    <div class="text-center my-4 p-3 border rounded bg-light">
-        <h4>🏆 Final Decision (WSM): <strong>{{ best.name }}</strong></h4>
-        <p>Highest score: <strong>{{ best.score }}</strong></p>
-    </div>
-{% endif %}
-
 
 </body>
 </html>
+
+{% endblock %}
